@@ -88,6 +88,9 @@ const RUNTIME_DATA_DIR = process.env.OD_DATA_DIR
   : path.join(PROJECT_ROOT, '.od');
 const ARTIFACTS_DIR = path.join(RUNTIME_DATA_DIR, 'artifacts');
 const PROJECTS_DIR = path.join(RUNTIME_DATA_DIR, 'projects');
+const LISTEN_HOST = process.env.OD_HOST?.trim() || '127.0.0.1';
+const PUBLIC_HOST = process.env.OD_PUBLIC_HOST?.trim()
+  || (LISTEN_HOST === '0.0.0.0' ? '127.0.0.1' : LISTEN_HOST);
 fs.mkdirSync(PROJECTS_DIR, { recursive: true });
 
 // Windows ENAMETOOLONG mitigation constants
@@ -1323,9 +1326,10 @@ export async function startServer({ port = 7456, returnServer = false } = {}) {
   app.post('/api/proxy/stream', async (req, res) => {
     /** @type {Partial<ProxyStreamRequest>} */
     const proxyBody = req.body || {};
-    const { baseUrl, apiKey, model, systemPrompt, messages } = proxyBody;
-    if (!baseUrl || !apiKey || !model) {
-      return sendApiError(res, 400, 'BAD_REQUEST', 'baseUrl, apiKey, and model are required');
+    const { baseUrl, apiKey: requestedApiKey, model, systemPrompt, messages } = proxyBody;
+    let apiKey = typeof requestedApiKey === 'string' ? requestedApiKey : '';
+    if (!baseUrl || !model) {
+      return sendApiError(res, 400, 'BAD_REQUEST', 'baseUrl and model are required');
     }
 
     // Validate baseUrl — only allow http/https and block internal IPs (SSRF).
@@ -1346,6 +1350,32 @@ export async function startServer({ port = 7456, returnServer = false } = {}) {
       /^172\.(1[6-9]|2\d|3[01])\./.test(parsed.hostname)
     ) {
       return sendApiError(res, 400, 'FORBIDDEN', 'Internal IPs blocked');
+    }
+    if (apiKey === '__server_managed__') {
+      const trustedBaseUrl = process.env.OD_GROK_PROXY_BASE_URL || '';
+      const trustedApiKey = process.env.XAI_PROXY_API_KEY || process.env.OD_GROK_PROXY_API_KEY || '';
+      const normalizeBaseUrl = (value) => {
+        const u = new URL(value.replace(/\/+$/, ''));
+        return `${u.protocol}//${u.host}${u.pathname.replace(/\/+$/, '')}`;
+      };
+      if (!trustedBaseUrl || !trustedApiKey) {
+        return sendApiError(res, 400, 'FORBIDDEN', 'Server-managed API key is not configured');
+      }
+      let requestedBase;
+      let trustedBase;
+      try {
+        requestedBase = normalizeBaseUrl(baseUrl);
+        trustedBase = normalizeBaseUrl(trustedBaseUrl);
+      } catch {
+        return sendApiError(res, 400, 'BAD_REQUEST', 'Invalid server-managed baseUrl');
+      }
+      if (requestedBase !== trustedBase) {
+        return sendApiError(res, 400, 'FORBIDDEN', 'Server-managed API key is only allowed for the trusted Grok proxy');
+      }
+      apiKey = trustedApiKey;
+    }
+    if (!apiKey) {
+      return sendApiError(res, 400, 'BAD_REQUEST', 'apiKey is required');
     }
 
     // Build the upstream URL. If the base URL already ends with /v1 (or
@@ -1465,10 +1495,10 @@ export async function startServer({ port = 7456, returnServer = false } = {}) {
   }
 
   return new Promise((resolve) => {
-    const server = app.listen(port, '127.0.0.1', () => {
+    const server = app.listen(port, LISTEN_HOST, () => {
       const address = server.address();
       const actualPort = typeof address === 'object' && address ? address.port : port;
-      const url = `http://127.0.0.1:${actualPort}`;
+      const url = `http://${PUBLIC_HOST}:${actualPort}`;
       resolve(returnServer ? { url, server } : url);
     });
   });

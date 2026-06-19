@@ -210,11 +210,11 @@ export function renderDirectionFormBody(): string {
 
   const form = {
     description:
-      'No brand to match — pick a visual direction. Each one ships with a real palette, font stack, and layout posture. You can override the accent below.',
+      '맞출 브랜드가 없다면 시각 방향을 골라주세요. 각 방향에는 실제 팔레트, 폰트 스택, 레이아웃 자세가 포함되어 있습니다. 강조색은 아래에서 바꿀 수 있어요.',
     questions: [
       {
         id: 'direction',
-        label: 'Direction',
+        label: '방향',
         type: 'direction-cards',
         required: true,
         options: DESIGN_DIRECTIONS.map((d) => d.id),
@@ -222,10 +222,10 @@ export function renderDirectionFormBody(): string {
       },
       {
         id: 'accent_override',
-        label: 'Accent override (optional)',
+        label: '강조색 변경(선택)',
         type: 'text',
         placeholder:
-          'e.g. "use moss green instead of cobalt", "no orange — too brand-y for us"',
+          '예: "코발트 대신 모스 그린", "주황색은 빼주세요"',
       },
     ],
   };

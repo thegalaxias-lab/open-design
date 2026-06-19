@@ -13,6 +13,7 @@ import {
 import { composeSystemPrompt } from '../prompts/system';
 import { navigate } from '../router';
 import { agentDisplayName } from '../utils/agentLabels';
+import { createId } from '../utils/id';
 import type { TodoItem } from '../runtime/todos';
 import {
   createConversation,
@@ -343,7 +344,7 @@ export function ProjectView({
       setError(null);
       const startedAt = Date.now();
       const userMsg: ChatMessage = {
-        id: crypto.randomUUID(),
+        id: createId(),
         role: 'user',
         content: prompt,
         attachments: attachments.length > 0 ? attachments : undefined,
@@ -358,7 +359,7 @@ export function ProjectView({
         config.mode === 'daemon'
           ? assistantAgentDisplayName(config.agentId, selectedAgent?.name)
           : 'Anthropic API';
-      const assistantId = crypto.randomUUID();
+      const assistantId = createId();
       const assistantMsg: ChatMessage = {
         id: assistantId,
         role: 'assistant',

@@ -56,8 +56,8 @@ export const en: Dict = {
   'settings.modeDaemonOffline': 'Daemon is not running',
   'settings.modeDaemonOfflineMeta': 'daemon offline',
   'settings.modeDaemonInstalledMeta': '{count} installed',
-  'settings.modeApi': 'Anthropic API',
-  'settings.modeApiMeta': 'BYOK',
+  'settings.modeApi': 'API / Grok',
+  'settings.modeApiMeta': 'Grok available',
   'settings.codeAgent': 'Code agent',
   'settings.codeAgentHint':
     'Detected by scanning your PATH. Pick the CLI you want generations to flow through.',
@@ -65,7 +65,7 @@ export const en: Dict = {
   'settings.rescanTitle': 'Re-scan PATH',
   'settings.noAgentsDetected':
     'No agents detected yet. Install one of Claude Code, Codex, Gemini CLI, OpenCode, Cursor Agent, Qwen, or GitHub Copilot CLI, then click Rescan.',
-  'settings.apiSection': 'Anthropic API',
+  'settings.apiSection': 'API provider',
   'settings.apiKey': 'API key',
   'settings.showKey': 'Show key',
   'settings.hideKey': 'Hide key',
@@ -74,7 +74,7 @@ export const en: Dict = {
   'settings.model': 'Model',
   'settings.baseUrl': 'Base URL',
   'settings.apiHint':
-    'Calls go directly from this browser to the base URL you set. No proxy. The key never leaves localStorage.',
+    'The Grok proxy uses a server-managed key on Oracle. Other API providers use the key you enter here.',
   'settings.skipForNow': 'Skip for now',
   'settings.getStarted': 'Get started',
   'settings.envConfigure': 'Configure execution mode',
@@ -210,7 +210,7 @@ export const en: Dict = {
 
   'avatar.title': 'Account & settings',
   'avatar.localCli': 'Local CLI',
-  'avatar.anthropicApi': 'Anthropic API',
+  'avatar.anthropicApi': 'API / Grok',
   'avatar.useLocal': 'Use Local CLI',
   'avatar.useApi': 'Use Anthropic API',
   'avatar.codeAgent': 'Code agent',

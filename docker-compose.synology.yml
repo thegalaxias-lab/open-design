@@ -1,0 +1,25 @@
+services:
+  open-design:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: open-design:local
+    container_name: open-design
+    restart: unless-stopped
+    ports:
+      - "5821:5821"
+    environment:
+      TZ: Asia/Seoul
+      HOME: /home/opendesign
+      OD_HOST: 0.0.0.0
+      OD_PORT: "5821"
+      OD_DATA_DIR: /data/.od
+      # Keep Codex plugin loading light if you later install Codex inside the container.
+      OD_CODEX_DISABLE_PLUGINS: "1"
+    volumes:
+      - ../opendesign-data:/data
+      - ../opendesign-data/home:/home/opendesign
+
+    # If files created by the container are not editable through RaiDrive,
+    # uncomment this and replace 1026:100 with your Synology user's uid:gid.
+    # user: "1026:100"

@@ -1,0 +1,26 @@
+node_modules/
+.git/
+.tmp/
+.od/
+apps/.od/
+dist/
+out/
+.next/
+.next-*/
+test-results/
+playwright-report/
+e2e/.od-data/
+e2e/playwright-report/
+e2e/reports/
+*.log
+.DS_Store
+
+# Local agent/session data can include credentials or private context.
+.agents/
+.claude/
+.claude-sessions/
+.codex/
+.cursor/
+.opencode/
+.task/
+task.md

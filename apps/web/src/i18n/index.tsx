@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 import { en } from './locales/en';
+import { ko } from './locales/ko';
 import { ptBR } from './locales/pt-BR';
 import { zhCN } from './locales/zh-CN';
 import { zhTW } from './locales/zh-TW';
@@ -21,6 +22,7 @@ export type { Locale } from './types';
 type DictKey = keyof Dict;
 
 const DICTS: Record<Locale, Dict> = {
+  'ko': ko,
   'en': en,
   'zh-CN': zhCN,
   'zh-TW': zhTW,
@@ -29,9 +31,8 @@ const DICTS: Record<Locale, Dict> = {
 
 const LS_KEY = 'open-design:locale';
 
-// First-run default is English. We honor an explicit user pick saved to
-// localStorage but never auto-detect from `navigator.language`, so the
-// initial experience is consistent and predictable.
+// Honor an explicit user pick saved to localStorage. On first run, prefer
+// Korean for Korean browsers; otherwise keep English as the global default.
 function detectInitialLocale(): Locale {
   if (typeof window === 'undefined') return 'en';
   try {
@@ -42,6 +43,8 @@ function detectInitialLocale(): Locale {
   } catch {
     /* ignore */
   }
+  const browserLocale = window.navigator.language || '';
+  if (browserLocale.toLowerCase().startsWith('ko')) return 'ko';
   return 'en';
 }
 

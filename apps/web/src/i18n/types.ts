@@ -1,10 +1,11 @@
 // Supported UI locales. Adding a new locale requires creating a new
 // dictionary in `./locales/` and registering it in `./index.tsx`.
-export type Locale = 'en' | 'zh-CN' | 'zh-TW' | 'pt-BR';
+export type Locale = 'ko' | 'en' | 'zh-CN' | 'zh-TW' | 'pt-BR';
 
-export const LOCALES: Locale[] = ['en', 'zh-CN', 'zh-TW', 'pt-BR'];
+export const LOCALES: Locale[] = ['ko', 'en', 'zh-CN', 'zh-TW', 'pt-BR'];
 
 export const LOCALE_LABEL: Record<Locale, string> = {
+  'ko': '한국어',
   'en': 'English',
   'zh-CN': '简体中文',
   'zh-TW': '繁體中文',

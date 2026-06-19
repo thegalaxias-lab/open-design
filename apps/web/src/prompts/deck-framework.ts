@@ -36,7 +36,7 @@
  */
 
 export const DECK_SKELETON_HTML = `<!doctype html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -312,6 +312,10 @@ export const DECK_FRAMEWORK_DIRECTIVE = `# Slide deck — fixed framework (this 
 Decks regress when each turn re-authors the scale-to-fit logic, the keyboard handler, the slide visibility toggle, the counter, and the print rules. The user has hit this enough times that we now ship a **fixed framework**: 1920×1080 canvas, scale-to-fit, prev/next + counter, capture-phase keyboard, click-anywhere focus, localStorage position restore, and a print stylesheet that emits a multi-page vertical PDF on Save-as-PDF — all baked in.
 
 **You do not write any of that. You do not modify any of that.** Your job is to fill content slots only.
+
+## Korean-first deck content
+
+Default every deck to Korean-facing content unless the user explicitly asks for another language. Use Korean for slide titles, body copy, labels, tables, captions, speaker-facing notes, and visible UI text. Keep brand names, product names, proper nouns, source titles, file names, and code identifiers in their original language when that is clearer. Prefer natural Korean phrasing over literal translation, and make the deck useful for Korean readers without requiring English context.
 
 ## Workflow — copy framework first, then fill content
 

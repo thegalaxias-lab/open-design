@@ -22,11 +22,14 @@ interface Props {
 }
 
 const SUGGESTED_MODELS = [
+  'grok-4.3',
   'claude-opus-4-5',
   'claude-sonnet-4-5',
   'claude-haiku-4-5',
   'mimo-v2.5-pro',
 ];
+
+const SERVER_MANAGED_API_KEY = '__server_managed__';
 
 export function SettingsDialog({
   initial,
@@ -89,6 +92,7 @@ export function SettingsDialog({
     cfg.mode === 'daemon'
       ? Boolean(cfg.agentId && agents.find((a) => a.id === cfg.agentId)?.available)
       : Boolean(cfg.apiKey.trim() && cfg.model.trim() && cfg.baseUrl.trim());
+  const apiKeyServerManaged = cfg.apiKey === SERVER_MANAGED_API_KEY;
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -335,7 +339,8 @@ export function SettingsDialog({
                   <input
                     type={showApiKey ? 'text' : 'password'}
                     placeholder="sk-ant-..."
-                    value={cfg.apiKey}
+                    value={apiKeyServerManaged ? 'Server-managed key (Oracle)' : cfg.apiKey}
+                    disabled={apiKeyServerManaged}
                     onChange={(e) => setCfg({ ...cfg, apiKey: e.target.value })}
                     autoFocus
                   />
@@ -381,11 +386,18 @@ export function SettingsDialog({
                     const idx = Number(e.target.value);
                     if (!isNaN(idx) && KNOWN_PROVIDERS[idx]) {
                       const p = KNOWN_PROVIDERS[idx]!;
-                      setCfg((c) => ({ ...c, baseUrl: p.baseUrl, model: p.model }));
+                      setCfg((c) => ({
+                        ...c,
+                        baseUrl: p.baseUrl,
+                        model: p.model,
+                        apiKey:
+                          p.apiKey ??
+                          (c.apiKey === SERVER_MANAGED_API_KEY ? '' : c.apiKey),
+                      }));
                     }
                   }}
                 >
-                  <option value="">— choose a provider —</option>
+                  <option value="">— choose API provider —</option>
                   {KNOWN_PROVIDERS.map((p, i) => (
                     <option key={i} value={i}>{p.label}</option>
                   ))}

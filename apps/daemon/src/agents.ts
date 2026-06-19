@@ -149,7 +149,6 @@ export const AGENT_DEFS = [
     // as a hint. Users can supply other ids via the custom-model input.
     fallbackModels: [
       DEFAULT_MODEL_OPTION,
-      { id: 'gpt-5-codex', label: 'gpt-5-codex' },
       { id: 'gpt-5', label: 'gpt-5' },
       { id: 'o3', label: 'o3' },
       { id: 'o4-mini', label: 'o4-mini' },
@@ -164,15 +163,28 @@ export const AGENT_DEFS = [
     // Prompt delivered via stdin (`codex exec -`) to avoid Windows
     // `spawn ENAMETOOLONG` while keeping Codex on its structured JSON stream.
     buildArgs: (_prompt, _imagePaths, _extra, options = {}, runtimeContext = {}) => {
-      const args = ['exec', '--json', '--skip-git-repo-check', '--full-auto'];
+      // Older Open Design configs exposed gpt-5-codex as a static hint, but
+      // Codex CLI rejects that model when authenticated with a ChatGPT account.
+      // Treat stale browser/server choices as "Default (CLI config)".
+      const model =
+        options.model === 'gpt-5-codex' ? 'default' : options.model;
+      const args = [
+        'exec',
+        '--json',
+        '--skip-git-repo-check',
+        // Open Design already runs Codex inside the project-scoped daemon
+        // container. Codex's own workspace-write sandbox uses bubblewrap on
+        // Linux, which is unavailable in the default Docker runtime.
+        '--dangerously-bypass-approvals-and-sandbox',
+      ];
       if (process.env.OD_CODEX_DISABLE_PLUGINS === '1') {
         args.push('--disable', 'plugins');
       }
       if (runtimeContext.cwd) {
         args.push('-C', runtimeContext.cwd);
       }
-      if (options.model && options.model !== 'default') {
-        args.push('--model', options.model);
+      if (model && model !== 'default') {
+        args.push('--model', model);
       }
       if (options.reasoning && options.reasoning !== 'default') {
         // Codex accepts `-c key=value` config overrides; reasoning effort
