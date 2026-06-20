@@ -359,7 +359,7 @@ export function ProjectView({
       const assistantAgentName =
         config.mode === 'daemon'
           ? assistantAgentDisplayName(config.agentId, selectedAgent?.name)
-          : 'Anthropic API';
+          : apiAssistantDisplayName(config);
       const assistantId = createId();
       const assistantMsg: ChatMessage = {
         id: assistantId,
@@ -860,4 +860,20 @@ function assistantAgentDisplayName(
   fallbackName?: string,
 ): string | undefined {
   return agentDisplayName(agentId, fallbackName) ?? undefined;
+}
+
+function apiAssistantDisplayName(config: AppConfig): string {
+  const model = config.model.trim();
+  const modelKey = model.toLowerCase();
+  const baseUrl = config.baseUrl.toLowerCase();
+  if (modelKey.startsWith('grok') || baseUrl.includes('grok') || baseUrl.includes(':8300')) {
+    return 'Grok API';
+  }
+  if (modelKey.startsWith('mimo') || baseUrl.includes('xiaomimimo')) {
+    return 'MiMo API';
+  }
+  if (baseUrl.includes('anthropic')) {
+    return 'Anthropic API';
+  }
+  return model ? `API (${model})` : 'API';
 }
