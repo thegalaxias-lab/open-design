@@ -5,6 +5,7 @@ import { projectRawUrl } from '../providers/registry';
 import type { TodoItem } from '../runtime/todos';
 import type { ChatAttachment, ChatMessage, Conversation, ProjectFile } from '../types';
 import { AssistantMessage } from './AssistantMessage';
+import { isNearChatBottom, shouldScrollChatToBottom } from './chat-scroll';
 import { ChatComposer, type ChatComposerHandle } from './ChatComposer';
 import { Icon } from './Icon';
 
@@ -105,9 +106,12 @@ export function ChatPane({
   const logRef = useRef<HTMLDivElement | null>(null);
   const historyWrapRef = useRef<HTMLDivElement | null>(null);
   const composerRef = useRef<ChatComposerHandle | null>(null);
+  const lastMessageIdRef = useRef<string | null>(null);
+  const pinnedToBottomRef = useRef(true);
   const [tab, setTab] = useState<Tab>('chat');
   const [showConvList, setShowConvList] = useState(false);
   const [scrolledFromBottom, setScrolledFromBottom] = useState(false);
+  const lastMessageId = messages[messages.length - 1]?.id ?? null;
   const lastAssistantId = [...messages].reverse().find((m) => m.role === 'assistant')?.id;
   // Map each assistant message id to the user message that follows it
   // (if any) so QuestionFormView can render its locked "answered" state
@@ -127,14 +131,23 @@ export function ChatPane({
   useEffect(() => {
     const el = logRef.current;
     if (!el) return;
-    // Auto-scroll only when we're already pinned near the bottom — preserves
-    // a user's scrollback position when they're reading earlier output while
-    // a new turn streams in.
-    const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
-    if (distance < 80) {
-      el.scrollTop = el.scrollHeight;
-    }
-  }, [messages, error]);
+    const previousLastMessageId = lastMessageIdRef.current;
+    const shouldScroll = shouldScrollChatToBottom({
+      previousLastMessageId,
+      nextLastMessageId: lastMessageId,
+      wasPinnedToBottom: pinnedToBottomRef.current,
+    });
+    lastMessageIdRef.current = lastMessageId;
+    if (!shouldScroll) return;
+
+    requestAnimationFrame(() => {
+      const target = logRef.current;
+      if (!target) return;
+      target.scrollTop = target.scrollHeight;
+      pinnedToBottomRef.current = true;
+      setScrolledFromBottom(false);
+    });
+  }, [messages, error, lastMessageId]);
 
   useEffect(() => {
     const el = logRef.current;
@@ -142,9 +155,13 @@ export function ChatPane({
     function onScroll() {
       const target = logRef.current;
       if (!target) return;
-      const distance =
-        target.scrollHeight - target.scrollTop - target.clientHeight;
-      setScrolledFromBottom(distance > 120);
+      const nearBottom = isNearChatBottom({
+        scrollHeight: target.scrollHeight,
+        scrollTop: target.scrollTop,
+        clientHeight: target.clientHeight,
+      });
+      pinnedToBottomRef.current = nearBottom;
+      setScrolledFromBottom(!nearBottom);
     }
     el.addEventListener('scroll', onScroll);
     return () => el.removeEventListener('scroll', onScroll);
@@ -176,6 +193,8 @@ export function ChatPane({
     const el = logRef.current;
     if (!el) return;
     el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    pinnedToBottomRef.current = true;
+    setScrolledFromBottom(false);
   }
 
   return (
