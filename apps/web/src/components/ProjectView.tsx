@@ -3,6 +3,7 @@ import { createHtmlArtifactManifest } from '../artifacts/manifest';
 import { createArtifactParser } from '../artifacts/parser';
 import { useT } from '../i18n';
 import { streamMessage } from '../providers/anthropic';
+import { withApiAttachmentContext } from '../providers/attachment-context';
 import { streamViaDaemon } from '../providers/daemon';
 import {
   fetchDesignSystem,
@@ -529,7 +530,16 @@ export function ProjectView({
         });
       } else {
         pushEvent({ kind: 'status', label: 'requesting', detail: config.model });
-        void streamMessage(config, systemPrompt, nextHistory, controller.signal, {
+        let apiHistory = nextHistory;
+        if (attachments.length > 0) {
+          pushEvent({ kind: 'status', label: 'reading attachments' });
+          apiHistory = await withApiAttachmentContext(
+            project.id,
+            nextHistory,
+            attachments,
+          );
+        }
+        void streamMessage(config, systemPrompt, apiHistory, controller.signal, {
           onDelta: (delta) => {
             handlers.onDelta(delta);
             handlers.onAgentEvent({ kind: 'text', text: delta });

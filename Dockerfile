@@ -35,7 +35,7 @@ ENV NODE_ENV=production \
 COPY --from=builder /app /app
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends bash git openssh-client ca-certificates \
+  && apt-get install -y --no-install-recommends bash git openssh-client ca-certificates poppler-utils \
   && rm -rf /var/lib/apt/lists/*
 
 RUN npm install -g @google/gemini-cli @openai/codex \
