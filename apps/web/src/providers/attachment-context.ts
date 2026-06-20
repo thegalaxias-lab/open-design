@@ -5,8 +5,8 @@ import {
   type ProjectFilePreview,
 } from './registry';
 
-const MAX_TOTAL_CONTEXT_CHARS = 30_000;
-const MAX_PER_ATTACHMENT_CHARS = 12_000;
+const MAX_TOTAL_CONTEXT_CHARS = 160_000;
+const MAX_PER_ATTACHMENT_CHARS = 120_000;
 
 interface AttachmentLoaders {
   preview: (projectId: string, path: string) => Promise<ProjectFilePreview | null>;
@@ -24,12 +24,16 @@ export async function withApiAttachmentContext(
   attachments: ChatAttachment[],
   loaders: AttachmentLoaders = defaultLoaders,
 ): Promise<ChatMessage[]> {
-  if (attachments.length === 0 || history.length === 0) return history;
-  const context = await buildApiAttachmentContext(projectId, attachments, loaders);
+  if (history.length === 0) return history;
+  const relevantAttachments = collectApiAttachments(history, attachments);
+  if (relevantAttachments.length === 0) return history;
+  const context = await buildApiAttachmentContext(projectId, relevantAttachments, loaders);
   if (!context) return history;
   const next = [...history];
-  const last = next[next.length - 1]!;
-  next[next.length - 1] = {
+  const lastUserIndex = findLastUserMessageIndex(next);
+  if (lastUserIndex === -1) return history;
+  const last = next[lastUserIndex]!;
+  next[lastUserIndex] = {
     ...last,
     content: `${last.content.trim()}\n\n${context}`,
   };
@@ -60,9 +64,36 @@ export async function buildApiAttachmentContext(
   return [
     '<attached-file-context>',
     'The user attached these project files. Use the extracted text below as source material for this turn.',
+    'Do not ask whether these files exist when extracted text is present here.',
     ...blocks,
     '</attached-file-context>',
   ].join('\n');
+}
+
+function collectApiAttachments(
+  history: ChatMessage[],
+  currentAttachments: ChatAttachment[],
+): ChatAttachment[] {
+  const byPath = new Map<string, ChatAttachment>();
+  for (const message of history) {
+    if (message.role !== 'user') continue;
+    for (const attachment of message.attachments ?? []) {
+      if (!attachment.path || byPath.has(attachment.path)) continue;
+      byPath.set(attachment.path, attachment);
+    }
+  }
+  for (const attachment of currentAttachments) {
+    if (!attachment.path || byPath.has(attachment.path)) continue;
+    byPath.set(attachment.path, attachment);
+  }
+  return Array.from(byPath.values());
+}
+
+function findLastUserMessageIndex(history: ChatMessage[]): number {
+  for (let i = history.length - 1; i >= 0; i -= 1) {
+    if (history[i]?.role === 'user') return i;
+  }
+  return -1;
 }
 
 async function buildSingleAttachmentBlock(
