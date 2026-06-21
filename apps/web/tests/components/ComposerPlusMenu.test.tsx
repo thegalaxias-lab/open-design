@@ -102,6 +102,17 @@ describe('ComposerPlusMenu pick-row caret protection', () => {
     expect(screen.getByText('Linear')).toBeTruthy();
   });
 
+  it('shows a top-level code-folder import row when supplied', () => {
+    const onLinkFolder = vi.fn();
+    renderMenu({ onLinkFolder });
+
+    fireEvent.click(screen.getByTestId('plus-trigger'));
+    fireEvent.click(screen.getByRole('menuitem', { name: /Link code folder/i }));
+
+    expect(onLinkFolder).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('menu')).toBeNull();
+  });
+
   it('portals the menu and constrains it to the available viewport height', async () => {
     const originalInnerWidth = window.innerWidth;
     const originalInnerHeight = window.innerHeight;

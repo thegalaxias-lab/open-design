@@ -127,6 +127,8 @@ export interface ComposerPlusMenuProps {
   /** Triggers file attachment (opens the native picker). */
   onAttachFiles: () => void;
   attachLoading?: boolean;
+  /** Opens the native folder picker and links the selected folder as context. */
+  onLinkFolder?: () => void;
 
   /**
    * Optional "Design toolbox" row, rendered LAST. Only the project composer
@@ -182,6 +184,7 @@ export function ComposerPlusMenu({
   onAddMcp,
   onAttachFiles,
   attachLoading,
+  onLinkFolder,
   renderToolbox,
   toolboxLabel,
   triggerTestId,
@@ -399,6 +402,21 @@ export function ComposerPlusMenu({
             />
             <span>{t('chat.attachAria')}</span>
           </button>
+          {onLinkFolder ? (
+            <button
+              type="button"
+              role="menuitem"
+              className="plus-menu__item"
+              data-testid="composer-plus-link-folder"
+              onClick={() => {
+                close();
+                onLinkFolder();
+              }}
+            >
+              <Icon name="folder" size={15} className="plus-menu__item-icon" />
+              <span>{t('chat.importFolder')}</span>
+            </button>
+          ) : null}
           <PlusSubmenuRow
             label={t('connectors.title')}
             icon="link"

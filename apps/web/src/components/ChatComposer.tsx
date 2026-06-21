@@ -2346,6 +2346,10 @@ export const ChatComposer = forwardRef<ChatComposerHandle, Props>(
                 fileInputRef.current?.click();
               }}
               attachLoading={uploading}
+              onLinkFolder={() => {
+                trackComposerBar({ element: 'working_dir' });
+                void handleLinkFolder();
+              }}
               toolboxLabel={t('chat.designToolbox.title')}
               renderToolbox={(close) => (
                 <DesignToolboxPanel
