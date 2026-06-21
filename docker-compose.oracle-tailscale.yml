@@ -1,0 +1,37 @@
+services:
+  open-design:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    image: open-design:oracle-tailscale
+    container_name: open-design
+    restart: unless-stopped
+    network_mode: host
+    env_file:
+      - /opt/gooday/docker/open-design/secrets/grok-proxy.env
+    environment:
+      TZ: Asia/Seoul
+      HOME: /home/opendesign
+      OD_BIND_HOST: "${TAILSCALE_IP:?Set TAILSCALE_IP in .env}"
+      OD_HOST: "${TAILSCALE_IP:?Set TAILSCALE_IP in .env}"
+      OD_PUBLIC_HOST: "${TAILSCALE_IP:?Set TAILSCALE_IP in .env}"
+      OD_PUBLIC_BASE_URL: "http://${TAILSCALE_IP:?Set TAILSCALE_IP in .env}:5821"
+      OD_ALLOWED_ORIGINS: "http://${TAILSCALE_IP:?Set TAILSCALE_IP in .env}:5821"
+      OD_PORT: "5821"
+      OD_DATA_DIR: /data/.od
+      OD_DISABLE_API_AUTH: "1"
+      OD_CODEX_DISABLE_PLUGINS: "1"
+      OD_CODEX_SANDBOX: danger-full-access
+      OD_GROK_PROXY_BASE_URL: "http://${TAILSCALE_IP:?Set TAILSCALE_IP in .env}:8300/v1"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://${TAILSCALE_IP:?Set TAILSCALE_IP in .env}:5821/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))\"",
+        ]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+    volumes:
+      - /opt/gooday/docker/open-design/data:/data
+      - /opt/gooday/docker/open-design/home:/home/opendesign
